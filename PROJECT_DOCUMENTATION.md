@@ -53,6 +53,9 @@ The system consists of three main modules:
 - **Buy/Sell Transactions**: Execute currency exchange operations
 - **Transaction History**: View all past transactions with details
 - **Wallet Balance**: Display current PLN balance
+- **Rate History (Charts)**: Charts tab with currency selector (USD, EUR, GBP, CHF, JPY), time range (7/30/93 days), bar chart and date–rate list from NBP API
+- **Rate Alerts**: Add, list and delete alerts; notification when rate reaches threshold; triggered alerts shown on dashboard
+- **Multi-language**: English, Polish, Turkish (language selector on login)
 
 **Technical Features:**
 - Cross-platform support (Android and iOS)
@@ -130,8 +133,10 @@ Language selector on the login screen; all main screens (auth, dashboard, alerts
 
 ![Multi-language](screenshots/06_multi_language.png)
 
-**Rate History – Charts**  
-Charts tab: select currency (USD, EUR, GBP, CHF, JPY), time range (7 / 30 / 93 days), and view bar chart plus date–rate list from NBP API.
+**Rate History – Charts (Extra Module)**  
+The app includes a **Charts** tab that shows historical exchange rates from the NBP API. The user can select a currency (USD, EUR, GBP, CHF, JPY), choose the time range (last 7, 30 or 93 days), and view a bar chart of the rate over time plus a list of dates and mid rates. This feature uses the backend endpoint `GET /api/rates/history/:code?days=30`.
+
+*Screenshot: Charts screen with currency selector and rate history chart.*
 
 ![Charts](screenshots/07_charts.png)
 
@@ -139,11 +144,6 @@ Charts tab: select currency (USD, EUR, GBP, CHF, JPY), time range (7 / 30 / 93 d
 Alerts tab: add alerts (currency, direction UP/DOWN, threshold), list and delete alerts. Triggered alerts appear on the dashboard when the rate reaches the threshold.
 
 ![Alerts](screenshots/08_alerts.png)
-
-**Dashboard with triggered alert (optional)**  
-When one or more rate alerts are triggered, a banner is shown on the Home dashboard with the alert details and current rate.
-
-![Alerts triggered](screenshots/09_alerts_triggered.png)
 
 ---
 
