@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mobil Döviz Değişim Sistemi (Demo)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Basit stil -->
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      .app {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .card {
+        background: #020617;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.9);
+        margin-bottom: 16px;
+        border: 1px solid #1e293b;
+      }
+      h1,
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+      input,
+      button,
+      select {
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #1f2933;
+        margin: 4px 0;
+        font-size: 14px;
+      }
+      input,
+      select {
+        width: 100%;
+        background: #020617;
+        color: #f9fafb;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        border: none;
+      }
+      button:disabled {
+        background: #4b5563;
+        cursor: not-allowed;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .col {
+        flex: 1 1 260px;
+      }
+      .error {
+        color: #fca5a5;
+        font-size: 13px;
+      }
+      .success {
+        color: #6ee7b7;
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #1f2933;
+        padding: 6px 4px;
+        text-align: left;
+      }
+      th {
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-buy {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+      }
+      .badge-sell {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script>
+      const { useState, useEffect } = React;
+
+      const API_BASE = 'http://localhost:4000/api';
+
+      function useApi() {
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState(null);
+
+        async function request(path, options = {}) {
+          setLoading(true);
+          setError(null);
+          try {
+            // Basit timeout simülasyonu
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+            const res = await fetch(API_BASE + path, {
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              signal: controller.signal,
+              ...options
+            });
+
+            clearTimeout(timeoutId);
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              throw new Error(data.error || 'İstek başarısız oldu');
+            }
+            return data;
+          } catch (err) {
+            if (err.name === 'AbortError') {
+              setError('İstek zaman aşımına uğradı. Ağınızı kontrol edin.');
+            } else {
+              setError(err.message || 'Beklenmeyen bir ağ hatası oluştu.');
+            }
+            throw err;
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        return { loading, error, request, setError };
+      }
+
+      function AuthCard({ onAuthenticated }) {
+        const { loading, error, request, setError } = useApi();
+        const [mode, setMode] = useState('login'); // login | register
+        const [name, setName] = useState('');
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setError(null);
+          try {
+            if (mode === 'register') {
+              await request('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password })
+              });
+            }
+            const user = await request('/auth/login', {
+              method: 'POST',
+              body: JSON.stringify({ email, password })
+            });
+            onAuthenticated(user);
+          } catch (_) {
+            // hata useApi içinde set edildi
+          }
+        };
+
+        return React.createElement(
+          'div',
+          { className: 'card' },
+          React.createElement(
+            'div',
+            { style: { display: 'flex', justifyContent: 'space-between' } },
+            React.createElement('h2', null, 'Giriş / Kayıt'),
+            React.createElement(
+              'div',
+              null,
+              React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  onClick: () =>
+                    setMode((m) => (m === 'login' ? 'register' : 'login')),
+                  style: { fontSize: 12, padding: '4px 8px' }
+                },
+                mode === 'login' ? 'Kayıt Ol' : 'Giriş Yap'
+              )
+            )
+          ),
+          React.createElement(
+            'form',
+            { onSubmit: handleSubmit },
+            mode === 'register' &&
+              React.createElement(
+                'div',
+                null,
+                React.createElement('label', null, 'İsim'),
+                React.createElement('input', {
+                  value: name,
+                  onChange: (e) => setName(e.target.value),
+                  required: true
+                })
+              ),
+            React.createElement(
+              'div',
+              null,
+              React.createElement('label', null, 'E-posta'),
+              React.createElement('input', {
+                type: 'email',
+                value: email,
+                onChange: (e) => setEmail(e.target.value),
+                required: true
+              })
+            ),
+            React.createElement(
+              'div',
+              null,
+              React.createElement('label', null, 'Şifre'),
+              React.createElement('input', {
+                type: 'password',
+                value: password,
+                onChange: (e) => setPassword(e.target.value),
+                required: true
+              })
+            ),
+            error &&
+              React.createElement('div', { className: 'error' }, String(error)),
+            React.createElement(
+              'button',
+              { type: 'submit', disabled: loading },
+              loading ? 'İşleniyor...' : mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol + Giriş'
+            )
+          )
+        );
+      }
+
+      function Dashboard({ user }) {
+        const { loading, error, request, setError } = useApi();
+        const [rates, setRates] = useState([]);
+        const [wallets, setWallets] = useState([]);
+        const [transactions, setTransactions] = useState([]);
+        const [selectedPair, setSelectedPair] = useState('');
+        const [tradeType, setTradeType] = useState('BUY');
+        const [amount, setAmount] = useState('');
+        const [lastMessage, setLastMessage] = useState(null);
+
+        useEffect(() => {
+          loadAll();
+        }, []);
+
+        async function loadAll() {
+          setError(null);
+          try {
+            const [ratesRes, walletsRes, txRes] = await Promise.all([
+              request('/rates'),
+              request(`/users/${user.userId}/wallets`),
+              request(`/users/${user.userId}/transactions`)
+            ]);
+            const table = Array.isArray(ratesRes) ? ratesRes[0] : ratesRes;
+            setRates(table.rates || []);
+            setWallets(walletsRes);
+            setTransactions(txRes);
+          } catch (_) {
+            // hata zaten set edildi
+          }
+        }
+
+        async function handleTrade(e) {
+          e.preventDefault();
+          setLastMessage(null);
+          setError(null);
+          const rateObj = rates.find((r) => r.code === selectedPair);
+          if (!rateObj) {
+            setError('Lütfen bir döviz çifti seçin.');
+            return;
+          }
+          try {
+            const res = await request(`/users/${user.userId}/trade`, {
+              method: 'POST',
+              body: JSON.stringify({
+                type: tradeType,
+                currencyPair: rateObj.code + '/TRY',
+                amount: Number(amount),
+                rate: rateObj.mid
+              })
+            });
+            setWallets((prev) =>
+              prev.map((w) =>
+                w.walletId === res.wallet.walletId ? res.wallet : w
+              )
+            );
+            setTransactions((prev) => [res.transaction, ...prev]);
+            setLastMessage('İşlem başarıyla gerçekleştirildi.');
+            setAmount('');
+          } catch (_) {
+            // hata useApi içinde
+          }
+        }
+
+        return React.createElement(
+          'div',
+          { className: 'app' },
+          React.createElement(
+            'div',
+            { className: 'card' },
+            React.createElement('h1', null, 'Mobil Döviz Değişim Sistemi (Demo)'),
+            React.createElement(
+              'p',
+              null,
+              'Hoş geldin, ',
+              React.createElement('strong', null, user.name || user.email)
+            ),
+            React.createElement(
+              'p',
+              { style: { fontSize: 12, opacity: 0.8 } },
+              'Bu arayüz, ders kapsamında istenen fonksiyonların basit bir prototipini gösterir. ',
+              'Ağ sorunlarına karşı timeout, hata mesajları ve tekrar deneme için uygun noktalar işaretlenmiştir.'
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'row' },
+            React.createElement(
+              'div',
+              { className: 'col' },
+              React.createElement(
+                'div',
+                { className: 'card' },
+                React.createElement(
+                  'div',
+                  { style: { display: 'flex', justifyContent: 'space-between' } },
+                  React.createElement('h3', null, 'Cüzdan'),
+                  React.createElement(
+                    'button',
+                    {
+                      type: 'button',
+                      onClick: loadAll,
+                      disabled: loading,
+                      style: { fontSize: 12 }
+                    },
+                    'Yenile'
+                  )
+                ),
+                wallets.length === 0 &&
+                  React.createElement(
+                    'p',
+                    null,
+                    'Henüz cüzdan bulunamadı (demo).'
+                  ),
+                wallets.length > 0 &&
+                  React.createElement(
+                    'ul',
+                    null,
+                    wallets.map((w) =>
+                      React.createElement(
+                        'li',
+                        { key: w.walletId },
+                        React.createElement(
+                          'strong',
+                          null,
+                          w.currency,
+                          ': '
+                        ),
+                        Number(w.balance).toFixed(2)
+                      )
+                    )
+                  )
+              ),
+              React.createElement(
+                'div',
+                { className: 'card' },
+                React.createElement('h3', null, 'Alım / Satım'),
+                React.createElement(
+                  'form',
+                  { onSubmit: handleTrade },
+                  React.createElement(
+                    'div',
+                    null,
+                    React.createElement('label', null, 'İşlem Tipi'),
+                    React.createElement(
+                      'select',
+                      {
+                        value: tradeType,
+                        onChange: (e) => setTradeType(e.target.value)
+                      },
+                      React.createElement(
+                        'option',
+                        { value: 'BUY' },
+                        'Al (BUY)'
+                      ),
+                      React.createElement(
+                        'option',
+                        { value: 'SELL' },
+                        'Sat (SELL)'
+                      )
+                    )
+                  ),
+                  React.createElement(
+                    'div',
+                    null,
+                    React.createElement('label', null, 'Döviz Birimi'),
+                    React.createElement(
+                      'select',
+                      {
+                        value: selectedPair,
+                        onChange: (e) => setSelectedPair(e.target.value)
+                      },
+                      React.createElement(
+                        'option',
+                        { value: '' },
+                        'Seçiniz'
+                      ),
+                      rates.map((r) =>
+                        React.createElement(
+                          'option',
+                          { value: r.code, key: r.code },
+                          r.code,
+                          ' - ',
+                          r.currency
+                        )
+                      )
+                    )
+                  ),
+                  React.createElement(
+                    'div',
+                    null,
+                    React.createElement('label', null, 'Miktar'),
+                    React.createElement('input', {
+                      type: 'number',
+                      min: '0',
+                      step: '0.01',
+                      value: amount,
+                      onChange: (e) => setAmount(e.target.value)
+                    })
+                  ),
+                  error &&
+                    React.createElement(
+                      'div',
+                      { className: 'error' },
+                      String(error)
+                    ),
+                  lastMessage &&
+                    React.createElement(
+                      'div',
+                      { className: 'success' },
+                      lastMessage
+                    ),
+                  React.createElement(
+                    'button',
+                    { type: 'submit', disabled: loading },
+                    loading ? 'İşleniyor...' : 'İşlem Yap'
+                  )
+                )
+              )
+            ),
+            React.createElement(
+              'div',
+              { className: 'col' },
+              React.createElement(
+                'div',
+                { className: 'card' },
+                React.createElement('h3', null, 'Döviz Kurları'),
+                rates.length === 0 &&
+                  React.createElement(
+                    'p',
+                    null,
+                    'Henüz veri alınamadı. Ağ veya backend durumunu kontrol edin.'
+                  ),
+                rates.length > 0 &&
+                  React.createElement(
+                    'table',
+                    null,
+                    React.createElement(
+                      'thead',
+                      null,
+                      React.createElement(
+                        'tr',
+                        null,
+                        React.createElement('th', null, 'Kod'),
+                        React.createElement('th', null, 'Döviz'),
+                        React.createElement('th', null, 'Kur (mid)')
+                      )
+                    ),
+                    React.createElement(
+                      'tbody',
+                      null,
+                      rates.slice(0, 15).map((r) =>
+                        React.createElement(
+                          'tr',
+                          { key: r.code },
+                          React.createElement('td', null, r.code),
+                          React.createElement('td', null, r.currency),
+                          React.createElement('td', null, r.mid)
+                        )
+                      )
+                    )
+                  )
+              ),
+              React.createElement(
+                'div',
+                { className: 'card' },
+                React.createElement('h3', null, 'İşlem Geçmişi'),
+                transactions.length === 0 &&
+                  React.createElement('p', null, 'Henüz işlem yok.'),
+                transactions.length > 0 &&
+                  React.createElement(
+                    'table',
+                    null,
+                    React.createElement(
+                      'thead',
+                      null,
+                      React.createElement(
+                        'tr',
+                        null,
+                        React.createElement('th', null, 'Tip'),
+                        React.createElement('th', null, 'Parite'),
+                        React.createElement('th', null, 'Miktar'),
+                        React.createElement('th', null, 'Kur'),
+                        React.createElement('th', null, 'Tarih')
+                      )
+                    ),
+                    React.createElement(
+                      'tbody',
+                      null,
+                      transactions.map((t) =>
+                        React.createElement(
+                          'tr',
+                          { key: t.transactionId },
+                          React.createElement(
+                            'td',
+                            null,
+                            React.createElement(
+                              'span',
+                              {
+                                className:
+                                  'badge ' +
+                                  (t.type === 'BUY'
+                                    ? 'badge-buy'
+                                    : 'badge-sell')
+                              },
+                              t.type
+                            )
+                          ),
+                          React.createElement('td', null, t.currencyPair),
+                          React.createElement('td', null, t.amount),
+                          React.createElement('td', null, t.rate),
+                          React.createElement(
+                            'td',
+                            null,
+                            new Date(t.createdAt).toLocaleString('tr-TR')
+                          )
+                        )
+                      )
+                    )
+                  )
+              )
+            )
+          )
+        );
+      }
+
+      function App() {
+        const [user, setUser] = useState(null);
+
+        if (!user) {
+          return React.createElement(
+            'div',
+            { className: 'app' },
+            React.createElement(
+              'div',
+              { className: 'card' },
+              React.createElement(
+                'h1',
+                null,
+                'Mobil Döviz Değişim Sistemi – Prototip'
+              ),
+              React.createElement(
+                'p',
+                null,
+                'Bu arayüz, dokümantasyonda tanımlanan fonksiyonel gereksinimlerin basit bir örneğini sunar.'
+              )
+            ),
+            React.createElement(AuthCard, { onAuthenticated: setUser })
+          );
+        }
+
+        return React.createElement(Dashboard, { user });
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
+
+
+

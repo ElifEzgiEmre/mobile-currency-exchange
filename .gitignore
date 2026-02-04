@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.*
+.env.local
+*.pem
+
+# Expo / React Native
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# Build & native (optional: remove /ios, /android from mobil-doviz-app if you want to track them)
+*.tsbuildinfo
+
+# Debug & logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Unnamed / temporary folder
+adsız klasör/
