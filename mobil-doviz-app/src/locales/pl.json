@@ -1,0 +1,65 @@
+{
+  "appTitle": "Mobilny System Wymiany Walut",
+  "auth": {
+    "loginRegister": "Logowanie / Rejestracja",
+    "login": "Zaloguj",
+    "register": "Zarejestruj",
+    "name": "Imię",
+    "email": "E-mail (tylko nazwa)",
+    "emailSuffix": "@gmail.com zostanie dodane automatycznie",
+    "password": "Hasło",
+    "placeholderName": "Twoje imię",
+    "placeholderEmail": "nazwa",
+    "placeholderPassword": "••••••••",
+    "submitLogin": "Zaloguj",
+    "submitRegister": "Zarejestruj i zaloguj"
+  },
+  "dashboard": {
+    "hello": "Witaj",
+    "logout": "Wyloguj",
+    "wallet": "Portfel",
+    "refresh": "Odśwież",
+    "buySell": "Kupno / Sprzedaż",
+    "buy": "Kupno (BUY)",
+    "sell": "Sprzedaż (SELL)",
+    "selectCurrency": "Wybierz walutę",
+    "tapCurrency": "Dotknij waluty z listy poniżej.",
+    "amount": "Kwota",
+    "amountPlaceholder": "np. 100",
+    "executeTrade": "Wykonaj transakcję",
+    "exchangeRates": "Kursy walut",
+    "transactionHistory": "Historia transakcji",
+    "noWallet": "Portfel nie znaleziony (demo).",
+    "noRates": "Brak danych. Sprawdź sieć lub backend.",
+    "noTransactions": "Brak transakcji.",
+    "transactionSuccess": "Transakcja zakończona pomyślnie.",
+    "selectCurrencyError": "Wybierz walutę.",
+    "validAmountError": "Wprowadź prawidłową kwotę."
+  },
+  "alerts": {
+    "title": "Alerty kursów",
+    "addAlert": "Dodaj alert",
+    "currencyPair": "Waluta (np. EUR)",
+    "direction": "Gdy kurs pójdzie",
+    "directionUp": "W górę (powyżej)",
+    "directionDown": "W dół (poniżej)",
+    "threshold": "Wartość progu",
+    "create": "Utwórz alert",
+    "yourAlerts": "Twoje alerty",
+    "delete": "Usuń",
+    "triggered": "Aktywowany",
+    "noAlerts": "Brak alertów. Dodaj alert, aby otrzymać powiadomienie."
+  },
+  "charts": {
+    "title": "Historia kursów",
+    "selectCurrency": "Wybierz walutę",
+    "lastDays": "Ostatnie {{count}} dni",
+    "noData": "Brak danych historycznych."
+  },
+  "common": {
+    "loading": "Ładowanie...",
+    "error": "Błąd",
+    "retry": "Ponów",
+    "language": "Język"
+  }
+}

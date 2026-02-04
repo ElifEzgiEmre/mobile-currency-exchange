@@ -15,7 +15,9 @@
 - **Field of Study:** Computer Science
 - **Year / Semester:** 2025 / Fall
 - **Supervisor:** Marcin Kacprowicz
+- **Project Presentation Date:** Thursday, 29 January 2026
 - **Submission Date:** 4 February 2026
+- **Source code:** Available in a Git repository (GitHub, GitLab): https://github.com/ElifEzgiEmre/mobile-currency-exchange
 
 ---
 
@@ -118,6 +120,30 @@ List of past transactions with type, currency pair, amount, rate, and date.
 Currency selection, amount input, and Execute Trade. BUY/SELL toggle.
 
 ![Buy Sell](screenshots/05_buy_sell.png)
+
+#### Extra Modules (Implemented)
+
+The following extra modules have been implemented and are available in the application.
+
+**Multi-language support (EN, PL, TR)**  
+Language selector on the login screen; all main screens (auth, dashboard, alerts, charts) use the selected language.
+
+![Multi-language](screenshots/06_multi_language.png)
+
+**Rate History – Charts**  
+Charts tab: select currency (USD, EUR, GBP, CHF, JPY), time range (7 / 30 / 93 days), and view bar chart plus date–rate list from NBP API.
+
+![Charts](screenshots/07_charts.png)
+
+**Rate Alerts**  
+Alerts tab: add alerts (currency, direction UP/DOWN, threshold), list and delete alerts. Triggered alerts appear on the dashboard when the rate reaches the threshold.
+
+![Alerts](screenshots/08_alerts.png)
+
+**Dashboard with triggered alert (optional)**  
+When one or more rate alerts are triggered, a banner is shown on the Home dashboard with the alert details and current rate.
+
+![Alerts triggered](screenshots/09_alerts_triggered.png)
 
 ---
 
@@ -862,7 +888,8 @@ The project was carried out between December 2025 and February 2026.
 | 10 | API Integration (Mobile ↔ Backend) | 22.01.2026 | Elif Ezgi Emre |
 | 11 | Testing & Debugging | 01.02.2026 | Elif Ezgi Emre |
 | 12 | Documentation & Report | 03.02.2026 | Elif Ezgi Emre |
-| 13 | Presentation Preparation | 04.02.2026 | Elif Ezgi Emre |
+| 13 | Presentation Preparation | 28.01.2026 | Elif Ezgi Emre |
+| 14 | **Project Presentation** | **29.01.2026 (Thursday)** | Elif Ezgi Emre |
 
 **Implementation Details:**
 
@@ -894,11 +921,12 @@ The project was carried out between December 2025 and February 2026.
 - Network condition testing (timeout, errors)
 - User acceptance testing
 
-**Stage 12-13: Documentation & Presentation**
+**Stage 12-14: Documentation & Presentation**
 - Complete project documentation
 - Prepare user manual
 - Create presentation slides
 - Prepare live demonstration
+- **Project presentation (29 January 2026, Thursday)**
 
 ---
 
@@ -926,6 +954,34 @@ This project successfully demonstrates a mobile currency exchange system that ad
 7. **User Experience**: Intuitive interface with clear feedback for all user actions, including error states and loading indicators.
 
 ### 8.2. Possible Extensions
+
+#### Extra Modules (Enhancement Ideas)
+
+The following **extra modules** could be added to the system to improve functionality and user experience, beyond the current core features:
+
+| Extra module | Description |
+|--------------|-------------|
+| **Rate alerts** | Notify the user when an exchange rate reaches a chosen threshold (e.g. EUR/PLN above 4.30). User sets target rate and currency pair; app sends push or in-app notification when the rate is reached. |
+| **Graphs & charts** | Historical rate trends with interactive charts (line, bar). Multiple time ranges (1 day, 1 week, 1 month, 1 year). Compare several currencies on one chart. Improves decision-making for users. |
+| **Multi-language support** | Interface and messages in several languages (e.g. English, Polish, Turkish). User selects language in settings; all labels, errors, and help texts change accordingly. Eases use for international users. |
+| **Offline mode** | When the device has no network, show last cached exchange rates and allow viewing wallet and history. Block new transactions until online. Optional: queue actions and sync when connection is restored. |
+| **Favorites / watchlist** | Let users mark favorite currency pairs and show them on a dedicated dashboard or widget for quick access. |
+| **Push notifications** | Rate alerts, transaction confirmations, and optional system announcements via push notifications. |
+| **Export (CSV/PDF)** | Export transaction history or reports as CSV or PDF for personal records or accounting. |
+
+These extra modules would extend the app with minimal changes to the existing architecture (new screens, background jobs for alerts, localisation files, and cached data for offline use).
+
+#### Implemented Extra Modules
+
+The following extra modules have been **implemented** in the current version of the application:
+
+| Module | Implementation |
+|--------|----------------|
+| **Rate alerts** | Backend: `GET/POST/DELETE /api/users/:userId/alerts`, `GET .../alerts/check`. Mobile: Alerts tab to add (currency, direction UP/DOWN, threshold), list and delete alerts; dashboard shows triggered alerts in a banner. |
+| **Graphs (rate history)** | Backend: `GET /api/rates/history/:code?days=30` (NBP API, max 93 days). Mobile: Charts tab with currency selector (USD, EUR, GBP, CHF, JPY), 7/30/93 days, bar chart and date–rate list. |
+| **Multi-language support** | Mobile: English (EN), Polish (PL), Turkish (TR). Language selector on login screen; translations in `src/locales/en.json`, `pl.json`, `tr.json`; all main UI strings use `t()` (i18n). |
+
+Screenshots of these features are included in **Section 2.3 – Application Screenshots** (Extra Modules subsection).
 
 #### A. Advanced Features
 

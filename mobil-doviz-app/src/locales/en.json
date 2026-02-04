@@ -1,0 +1,65 @@
+{
+  "appTitle": "Mobile Currency Exchange System",
+  "auth": {
+    "loginRegister": "Login / Register",
+    "login": "Login",
+    "register": "Register",
+    "name": "Name",
+    "email": "Email (username only)",
+    "emailSuffix": "@gmail.com will be added automatically",
+    "password": "Password",
+    "placeholderName": "Your name",
+    "placeholderEmail": "username",
+    "placeholderPassword": "••••••••",
+    "submitLogin": "Login",
+    "submitRegister": "Register + Login"
+  },
+  "dashboard": {
+    "hello": "Hello",
+    "logout": "Logout",
+    "wallet": "Wallet",
+    "refresh": "Refresh",
+    "buySell": "Buy / Sell",
+    "buy": "Buy (BUY)",
+    "sell": "Sell (SELL)",
+    "selectCurrency": "Select Currency",
+    "tapCurrency": "Tap a currency from the list below.",
+    "amount": "Amount",
+    "amountPlaceholder": "e.g. 100",
+    "executeTrade": "Execute Trade",
+    "exchangeRates": "Exchange Rates",
+    "transactionHistory": "Transaction History",
+    "noWallet": "Wallet not found (demo).",
+    "noRates": "No data available. Please check network or backend.",
+    "noTransactions": "No transactions yet.",
+    "transactionSuccess": "Transaction completed successfully.",
+    "selectCurrencyError": "Please select a currency.",
+    "validAmountError": "Please enter a valid amount."
+  },
+  "alerts": {
+    "title": "Rate Alerts",
+    "addAlert": "Add Alert",
+    "currencyPair": "Currency (e.g. EUR)",
+    "direction": "When rate goes",
+    "directionUp": "Up (above)",
+    "directionDown": "Down (below)",
+    "threshold": "Threshold value",
+    "create": "Create Alert",
+    "yourAlerts": "Your alerts",
+    "delete": "Delete",
+    "triggered": "Triggered",
+    "noAlerts": "No alerts. Add one to get notified when a rate reaches your target."
+  },
+  "charts": {
+    "title": "Rate History",
+    "selectCurrency": "Select currency",
+    "lastDays": "Last {{count}} days",
+    "noData": "No history available."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "language": "Language"
+  }
+}

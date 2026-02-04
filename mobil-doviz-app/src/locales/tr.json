@@ -1,0 +1,65 @@
+{
+  "appTitle": "Mobil Döviz Çevirme Sistemi",
+  "auth": {
+    "loginRegister": "Giriş / Kayıt",
+    "login": "Giriş",
+    "register": "Kayıt",
+    "name": "Ad",
+    "email": "E-posta (sadece kullanıcı adı)",
+    "emailSuffix": "@gmail.com otomatik eklenir",
+    "password": "Şifre",
+    "placeholderName": "Adınız",
+    "placeholderEmail": "kullaniciadi",
+    "placeholderPassword": "••••••••",
+    "submitLogin": "Giriş",
+    "submitRegister": "Kayıt ol ve giriş yap"
+  },
+  "dashboard": {
+    "hello": "Merhaba",
+    "logout": "Çıkış",
+    "wallet": "Cüzdan",
+    "refresh": "Yenile",
+    "buySell": "Al / Sat",
+    "buy": "Al (BUY)",
+    "sell": "Sat (SELL)",
+    "selectCurrency": "Döviz seçin",
+    "tapCurrency": "Aşağıdaki listeden bir dövize dokunun.",
+    "amount": "Tutar",
+    "amountPlaceholder": "örn. 100",
+    "executeTrade": "İşlemi uygula",
+    "exchangeRates": "Döviz kurları",
+    "transactionHistory": "İşlem geçmişi",
+    "noWallet": "Cüzdan bulunamadı (demo).",
+    "noRates": "Veri yok. Ağ veya sunucuyu kontrol edin.",
+    "noTransactions": "Henüz işlem yok.",
+    "transactionSuccess": "İşlem başarıyla tamamlandı.",
+    "selectCurrencyError": "Lütfen bir döviz seçin.",
+    "validAmountError": "Geçerli bir tutar girin."
+  },
+  "alerts": {
+    "title": "Kur Uyarıları",
+    "addAlert": "Uyarı ekle",
+    "currencyPair": "Döviz (örn. EUR)",
+    "direction": "Kur şu yönde gittiğinde",
+    "directionUp": "Yukarı (üzerinde)",
+    "directionDown": "Aşağı (altında)",
+    "threshold": "Eşik değeri",
+    "create": "Uyarı oluştur",
+    "yourAlerts": "Uyarılarınız",
+    "delete": "Sil",
+    "triggered": "Tetiklendi",
+    "noAlerts": "Uyarı yok. Hedef kura ulaşıldığında bildirim almak için ekleyin."
+  },
+  "charts": {
+    "title": "Kur geçmişi",
+    "selectCurrency": "Döviz seçin",
+    "lastDays": "Son {{count}} gün",
+    "noData": "Geçmiş veri yok."
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "retry": "Tekrar dene",
+    "language": "Dil"
+  }
+}

@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider } from '@/src/AuthContext';
+import { I18nProvider } from '@/src/i18n';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -13,6 +15,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
+    <I18nProvider>
+    <AuthProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -20,5 +24,7 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+    </AuthProvider>
+    </I18nProvider>
   );
 }

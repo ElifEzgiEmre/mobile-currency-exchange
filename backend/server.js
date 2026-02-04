@@ -16,10 +16,12 @@ app.use(express.json());
 const users = [];
 const wallets = [];
 const transactions = [];
+const rateAlerts = [];
 
 let nextUserId = 1;
 let nextWalletId = 1;
 let nextTransactionId = 1;
+let nextAlertId = 1;
 
 // Convert any existing TRY wallets to PLN on startup
 // This ensures compatibility with old user data
@@ -123,6 +125,105 @@ app.get('/api/rates', async (req, res) => {
     return res.status(503).json({ error: result.error });
   }
   res.json(result.data);
+});
+
+// Historical rates for charts (NBP: last N quotations, max 93)
+const NBP_HISTORY_URL = (code, count) =>
+  `https://api.nbp.pl/api/exchangerates/rates/A/${code}/last/${Math.min(93, count)}/?format=json`;
+app.get('/api/rates/history/:code', async (req, res) => {
+  const code = (req.params.code || '').toUpperCase();
+  const days = Math.min(93, Math.max(1, parseInt(req.query.days, 10) || 30));
+  if (!/^[A-Z]{3}$/.test(code)) {
+    return res.status(400).json({ error: 'Invalid currency code (e.g. USD, EUR).' });
+  }
+  try {
+    const response = await axios.get(NBP_HISTORY_URL(code, days), { timeout: 5000 });
+    const data = response.data;
+    res.json({ code: data.code, rates: (data.rates || []).map((r) => ({ date: r.effectiveDate, mid: r.mid })) });
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      return res.status(404).json({ error: 'No history for this currency.' });
+    }
+    const message = err.code === 'ECONNABORTED' ? 'Request timed out.' : (err.response && err.response.data) || err.message;
+    res.status(503).json({ error: message });
+  }
+});
+
+// Rate alerts: list
+app.get('/api/users/:userId/alerts', (req, res) => {
+  const userId = Number(req.params.userId);
+  const userAlerts = rateAlerts.filter((a) => a.userId === userId);
+  res.json(userAlerts);
+});
+
+// Rate alerts: create
+app.post('/api/users/:userId/alerts', (req, res) => {
+  const userId = Number(req.params.userId);
+  const { currencyPair, direction, thresholdValue } = req.body;
+  if (!currencyPair || !direction || thresholdValue == null) {
+    return res.status(400).json({ error: 'currencyPair, direction (UP/DOWN), and thresholdValue are required.' });
+  }
+  if (!['UP', 'DOWN'].includes(String(direction).toUpperCase())) {
+    return res.status(400).json({ error: 'direction must be UP or DOWN.' });
+  }
+  const numericThreshold = Number(thresholdValue);
+  if (Number.isNaN(numericThreshold) || numericThreshold <= 0) {
+    return res.status(400).json({ error: 'thresholdValue must be a positive number.' });
+  }
+  const user = users.find((u) => u.userId === userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+  const alert = {
+    alertId: nextAlertId++,
+    userId,
+    currencyPair: String(currencyPair).toUpperCase(),
+    direction: String(direction).toUpperCase(),
+    thresholdValue: numericThreshold,
+    isActive: true,
+    createdAt: new Date().toISOString()
+  };
+  rateAlerts.push(alert);
+  res.status(201).json(alert);
+});
+
+// Rate alerts: delete
+app.delete('/api/users/:userId/alerts/:alertId', (req, res) => {
+  const userId = Number(req.params.userId);
+  const alertId = Number(req.params.alertId);
+  const index = rateAlerts.findIndex((a) => a.alertId === alertId && a.userId === userId);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Alert not found.' });
+  }
+  rateAlerts.splice(index, 1);
+  res.status(204).send();
+});
+
+// Rate alerts: check which are triggered (compare current rates with alerts)
+app.get('/api/users/:userId/alerts/check', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const result = await fetchRatesWithNetworkHandling();
+  if (result.error) {
+    return res.status(503).json({ error: result.error });
+  }
+  const table = Array.isArray(result.data) ? result.data[0] : result.data;
+  const rates = table && table.rates ? table.rates : [];
+  const ratesByCode = {};
+  rates.forEach((r) => { ratesByCode[r.code] = r.mid; });
+
+  const userAlerts = rateAlerts.filter((a) => a.userId === userId && a.isActive);
+  const triggered = [];
+  userAlerts.forEach((a) => {
+    const pair = a.currencyPair.replace('/PLN', '');
+    const current = ratesByCode[pair];
+    if (current == null) return;
+    if (a.direction === 'UP' && current >= a.thresholdValue) {
+      triggered.push({ ...a, currentRate: current });
+    } else if (a.direction === 'DOWN' && current <= a.thresholdValue) {
+      triggered.push({ ...a, currentRate: current });
+    }
+  });
+  res.json({ triggered });
 });
 
 // User wallet information

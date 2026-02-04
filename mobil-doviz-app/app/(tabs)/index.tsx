@@ -11,6 +11,8 @@ import {
   FlatList,
 } from 'react-native';
 import { API_BASE } from '../../src/config';
+import { useAuth } from '../../src/AuthContext';
+import { useI18n } from '../../src/i18n';
 
 type User = {
   userId: number;
@@ -84,6 +86,7 @@ function AuthScreen({
   onAuthenticated: (u: User) => void;
 }) {
   const { loading, error, request, setError } = useApi();
+  const { t, locale, setLocale } = useI18n();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -151,10 +154,24 @@ function AuthScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.containerCentered}>
-        <Text style={styles.titleCentered}>Mobile Currency Exchange System</Text>
+        <View style={styles.langRow}>
+          <Text style={styles.langLabel}>{t('common.language')}</Text>
+          <View style={styles.langButtons}>
+            {(['en', 'pl', 'tr'] as const).map((l) => (
+              <TouchableOpacity
+                key={l}
+                onPress={() => setLocale(l)}
+                style={[styles.langBtn, locale === l && styles.langBtnActive]}
+              >
+                <Text style={[styles.langBtnText, locale === l && styles.langBtnTextActive]}>{l.toUpperCase()}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <Text style={styles.titleCentered}>{t('appTitle')}</Text>
         <View style={styles.card}>
           <View style={styles.rowBetween}>
-            <Text style={styles.cardTitle}>Login / Register</Text>
+            <Text style={styles.cardTitle}>{t('auth.loginRegister')}</Text>
             <TouchableOpacity
               onPress={() =>
                 setMode((m) => (m === 'login' ? 'register' : 'login'))
@@ -162,33 +179,33 @@ function AuthScreen({
               style={styles.modeButton}
             >
               <Text style={styles.modeButtonText}>
-                {mode === 'login' ? 'Register' : 'Login'}
+                {mode === 'login' ? t('auth.register') : t('auth.login')}
               </Text>
             </TouchableOpacity>
           </View>
 
           {mode === 'register' && (
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Name</Text>
+              <Text style={styles.label}>{t('auth.name')}</Text>
               <TextInput
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
-                placeholder="Your name"
+                placeholder={t('auth.placeholderName')}
                 placeholderTextColor="#64748b"
               />
             </View>
           )}
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email (username only)</Text>
-            <Text style={styles.mutedSmall}>@gmail.com will be added automatically</Text>
+            <Text style={styles.label}>{t('auth.email')}</Text>
+            <Text style={styles.mutedSmall}>{t('auth.emailSuffix')}</Text>
             <View style={styles.emailInputContainer}>
               <TextInput
                 style={styles.emailInput}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="username"
+                placeholder={t('auth.placeholderEmail')}
                 keyboardType="default"
                 autoCapitalize="none"
                 placeholderTextColor="#64748b"
@@ -198,12 +215,12 @@ function AuthScreen({
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <TextInput
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
+              placeholder={t('auth.placeholderPassword')}
               secureTextEntry
               placeholderTextColor="#64748b"
             />
@@ -220,7 +237,7 @@ function AuthScreen({
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.buttonText}>
-                {mode === 'login' ? 'Login' : 'Register + Login'}
+                {mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister')}
               </Text>
             )}
           </TouchableOpacity>
@@ -232,6 +249,7 @@ function AuthScreen({
 
 function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void }) {
   const { loading, error, request, setError } = useApi();
+  const { t } = useI18n();
   const [rates, setRates] = useState<Rate[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -239,6 +257,7 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
   const [selectedCode, setSelectedCode] = useState('');
   const [amount, setAmount] = useState('');
   const [lastMessage, setLastMessage] = useState<string | null>(null);
+  const [triggeredAlerts, setTriggeredAlerts] = useState<Array<{ currencyPair: string; currentRate: number; thresholdValue: number; direction: string }>>([]);
 
   useEffect(() => {
     loadAll();
@@ -248,15 +267,17 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
   async function loadAll() {
     setError(null);
     try {
-      const [ratesRes, walletsRes, txRes] = await Promise.all([
+      const [ratesRes, walletsRes, txRes, alertsCheckRes] = await Promise.all([
         request('/rates'),
         request(`/users/${user.userId}/wallets`),
         request(`/users/${user.userId}/transactions`),
+        request(`/users/${user.userId}/alerts/check`).catch(() => ({ triggered: [] })),
       ]);
       const table = Array.isArray(ratesRes) ? ratesRes[0] : ratesRes;
       setRates(table.rates || []);
       setWallets(walletsRes);
       setTransactions(txRes);
+      setTriggeredAlerts((alertsCheckRes && alertsCheckRes.triggered) || []);
     } catch {
       // hata zaten set edildi
     }
@@ -268,12 +289,12 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
 
     const rateObj = rates.find((r) => r.code === selectedCode);
     if (!rateObj) {
-      setError('Please select a currency.');
+      setError(t('dashboard.selectCurrencyError'));
       return;
     }
     const numericAmount = Number(amount);
     if (!numericAmount || numericAmount <= 0) {
-      setError('Please enter a valid amount.');
+      setError(t('dashboard.validAmountError'));
       return;
     }
 
@@ -293,7 +314,7 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
       );
       setTransactions((prev) => [res.transaction, ...prev]);
       setAmount('');
-      setLastMessage('Transaction completed successfully.');
+      setLastMessage(t('dashboard.transactionSuccess'));
     } catch {
       // hata useApi içinde
     }
@@ -346,21 +367,32 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={[styles.rowBetween, { marginBottom: 12 }]}>
-          <Text style={styles.title}>Hello, {user.name || user.email}</Text>
+          <Text style={styles.title}>{t('dashboard.hello')}, {user.name || user.email}</Text>
           <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutButtonText}>Logout</Text>
+            <Text style={styles.logoutButtonText}>{t('dashboard.logout')}</Text>
           </TouchableOpacity>
         </View>
 
+        {triggeredAlerts.length > 0 && (
+          <View style={styles.alertBanner}>
+            <Text style={styles.alertBannerTitle}>{t('alerts.triggered')}</Text>
+            {triggeredAlerts.map((a, i) => (
+              <Text key={i} style={styles.alertBannerText}>
+                {a.currencyPair} {a.direction === 'UP' ? '≥' : '≤'} {a.thresholdValue} (current: {a.currentRate})
+              </Text>
+            ))}
+          </View>
+        )}
+
         <View style={styles.card}>
           <View style={styles.rowBetween}>
-            <Text style={styles.cardTitle}>Wallet</Text>
+            <Text style={styles.cardTitle}>{t('dashboard.wallet')}</Text>
             <TouchableOpacity onPress={loadAll} style={styles.smallButton} disabled={loading}>
-              <Text style={styles.smallButtonText}>Refresh</Text>
+              <Text style={styles.smallButtonText}>{t('dashboard.refresh')}</Text>
             </TouchableOpacity>
           </View>
           {wallets.length === 0 ? (
-            <Text style={styles.muted}>Wallet not found (demo).</Text>
+            <Text style={styles.muted}>{t('dashboard.noWallet')}</Text>
           ) : (
             <FlatList
               data={wallets}
@@ -371,7 +403,7 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Buy / Sell</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.buySell')}</Text>
 
           <View style={styles.rowBetween}>
             <TouchableOpacity
@@ -379,7 +411,7 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
               onPress={() => setTradeType('BUY')}
             >
               <Text style={[styles.switchButtonText, tradeType === 'BUY' && styles.switchButtonTextActive]}>
-                Buy (BUY)
+                {t('dashboard.buy')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -387,14 +419,14 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
               onPress={() => setTradeType('SELL')}
             >
               <Text style={[styles.switchButtonText, tradeType === 'SELL' && styles.switchButtonTextActive]}>
-                Sell (SELL)
+                {t('dashboard.sell')}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Select Currency</Text>
-            <Text style={styles.mutedSmall}>Tap a currency from the list below.</Text>
+            <Text style={styles.label}>{t('dashboard.selectCurrency')}</Text>
+            <Text style={styles.mutedSmall}>{t('dashboard.tapCurrency')}</Text>
             <FlatList
               data={rates.slice(0, 15)}
               keyExtractor={(item) => item.code}
@@ -406,13 +438,13 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Amount</Text>
+            <Text style={styles.label}>{t('dashboard.amount')}</Text>
             <TextInput
               style={styles.input}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
-              placeholder="e.g. 100"
+              placeholder={t('dashboard.amountPlaceholder')}
               placeholderTextColor="#64748b"
             />
           </View>
@@ -421,14 +453,14 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
           {lastMessage && <Text style={styles.successText}>{lastMessage}</Text>}
 
           <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleTrade} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Execute Trade</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('dashboard.executeTrade')}</Text>}
           </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Exchange Rates</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.exchangeRates')}</Text>
           {rates.length === 0 ? (
-            <Text style={styles.muted}>No data available. Please check network or backend.</Text>
+            <Text style={styles.muted}>{t('dashboard.noRates')}</Text>
           ) : (
             <FlatList
               data={rates.slice(0, 15)}
@@ -446,9 +478,9 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Transaction History</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.transactionHistory')}</Text>
           {transactions.length === 0 ? (
-            <Text style={styles.muted}>No transactions yet.</Text>
+            <Text style={styles.muted}>{t('dashboard.noTransactions')}</Text>
           ) : (
             <FlatList
               data={transactions}
@@ -463,7 +495,7 @@ function DashboardScreen({ user, onLogout }: { user: User; onLogout: () => void 
 }
 
 export default function Index() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser } = useAuth();
 
   if (!user) {
     return <AuthScreen onAuthenticated={setUser} />;
@@ -474,6 +506,16 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#020617' },
+  langRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
+  langLabel: { color: '#94a3b8', fontSize: 12 },
+  langButtons: { flexDirection: 'row', gap: 6 },
+  langBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#334155' },
+  langBtnActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
+  langBtnText: { color: '#e5e7eb', fontSize: 12 },
+  langBtnTextActive: { color: '#fff', fontWeight: '600' },
+  alertBanner: { backgroundColor: '#1e3a5f', borderRadius: 10, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: '#2563eb' },
+  alertBannerTitle: { color: '#93c5fd', fontWeight: '600', marginBottom: 4 },
+  alertBannerText: { color: '#e5e7eb', fontSize: 12 },
   containerCentered: {
     flex: 1,
     padding: 16,
